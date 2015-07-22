@@ -1,4 +1,4 @@
-/**
+
 Working Principle: sizes and steps, in row (lower index) major form, that, by default gives: steps[i] >= steps[i+1]. 
 The access to the indices i1..iN or simply ii... is obtained by: base + ii .* steps. Several view operations
 are possible, and even generalized transposition (sN...s1). Note that, when transposition is applied the condition over
@@ -29,7 +29,7 @@ Emanuele Ruffaldi @SSSA 2015
 
 ------
 Existing
+==============
 
-- boost multidimensional
+- boost multidimensional array http://www.boost.org/doc/libs/release/libs/multi_array/
 - http://cpptruths.blogspot.be/2011/10/multi-dimensional-arrays-in-c11.html
-*/

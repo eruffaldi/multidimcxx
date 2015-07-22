@@ -12,6 +12,7 @@
 #include <Eigen/Dense>
 #include <initializer_list>
 #include <iostream>
+#include <type_traits>
 #include "multidim_details.hpp"
 
 namespace multidim
@@ -27,10 +28,10 @@ namespace multidim
 		using indexvector_t = Eigen::Matrix<int,Ncount,1>; // instead of std::vector<int>
 
 		template <int i>
-		using getsizetype = intholder<TS::template pick<i>::xsize>;
+		using getsizetype = std::integral_constant<int,TS::template pick<i>::xsize>;
 
 		template <int i>
-		using getsteptype = intholder<TS::template pick<i>::xstep>;
+		using getsteptype = std::integral_constant<int,TS::template pick<i>::xstep>;
 
 		template <int i>
 		constexpr int getssize() const { return details::saccessorseq<i,TS>::xsize; }

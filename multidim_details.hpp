@@ -55,16 +55,10 @@ struct iproduct<x, N...> {
 };
 
 template <int x>
-struct intholder
-{
-  static constexpr  int value = x;
-};
+using intholder = std::integral_constant<int,x>;
 
 template <bool x>
-struct boolholder
-{
-  static constexpr  bool value = x;
-};
+using boolholder = std::integral_constant<bool,x>;
 
 template<class T,T...I> struct integer_sequence;
 
