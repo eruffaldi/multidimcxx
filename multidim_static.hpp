@@ -17,6 +17,8 @@
 
 namespace multidim
 {
+	template <class T, class TS>
+	class MultiDimNView;
 
 	/**
 	 * Base class of Multidimensional Static matrix of elements of type T
@@ -66,6 +68,19 @@ namespace multidim
 			return offset({I...});
 		}
 
+		template <class dummy=void>
+		auto squeeze() -> MultiDimNView<T, typename TS::template removeif<singletondim> >;
+
+		template <int...neworder>
+		auto permutedim() -> MultiDimNView<T, typename TS::template permuted<neworder...> >;
+
+		// TODO: let last dimension free to match
+		template <int...N>
+		auto reshapeR() -> MultiDimNView<T, typename details::rowmajorstepper<N...> >;
+
+		template <int...N>
+		auto reshapeC() -> MultiDimNView<T, typename details::colmajorstepper<N...> >;
+
 		/// via initializer list (bit ugly...)
 		/// we loop over i Ncount because is compile time length, while for(int x: L) IS NOT
 		int offset(const std::initializer_list<int> & L) const 
@@ -92,13 +107,24 @@ namespace multidim
 
 		MultiDimNView(data_t x):  data_(x) 
 		{
-
 		}
 
 		constexpr const T * data() const { return data_; }
 
 		T * data() { return data_; }
 
+		void setOnes()
+		{
+			map_t(data_).setOnes();	
+		}
+
+		void setZero()
+		{
+			map_t(data_).setZero();	
+		}
+
+		/// COMMON ACROSS MultiDimNView and MultiDimN
+		/// TODO: replace with curiously recursive pattern
 		/// limit by dimension
 		/// FUTURE: variant with index compile time
 		template<int dim>
@@ -117,75 +143,7 @@ namespace multidim
 
 			return data() + index1*MultiDimNBase<T,TS>::template getsteptype<dim>::value;
 		}
-
-		/// remove the singleton dimensions (after limit1)
-		template <class dummy=void>
-		auto squeeze() -> MultiDimNView<T, typename TS::template removeif<singletondim> >
-		{
-			return data();
-		}
-
-		template <int...neworder>
-		auto permutedim() -> MultiDimNView<T, typename TS::template permuted<neworder...> >
-		{
-			static_assert(sizeof...(neworder) == TS::size,"permutation requires same order");
-			return data();
-		}
-
-		void setOnes()
-		{
-			map_t(data_).setOnes();	
-		}
-
-		void setZero()
-		{
-			map_t(data_).setZero();	
-		}
-
-	private:
-		data_t data_;
-	};
-
-	// column wise
-	template <class T, class TS>
-	class MultiDimN: public MultiDimNBase<T,TS>
-	{
-	public:
-		using data_t = Eigen::Matrix<T,MultiDimNBase<T,TS>::Ntot,1>;
-
-		MultiDimN()
-		{
-
-		}
-
-		const T * data() const { return data_.data(); }
-
-		T * data() { return data_.data(); }
-
-		template<int dim>
-		auto limit1(int index) -> MultiDimNView<T, typename TS::template drop<dim> >
-		{
-			return (data()+index*  MultiDimNBase<T,TS>::template getsteptype<dim>::value ); // via implicit construction
-		}
-
-		/// for the dimension dim takes from the given index1 up to newsize elements. This is not reducing the number of dimensions
-		/// FUTURE: variant with index compile time
-		template<int dim, int newsize>
-		auto limit1block(int index1) -> 
-			MultiDimNView<T, typename TS::template replacetype<dim,sspair<newsize,  MultiDimNBase<T,TS>::template getsteptype<dim>::value   > > >
-		{
-			static_assert(newsize <= MultiDimNBase<T,TS>::template getsizetype<dim>::value,"sub-size cannot be larger than original");
-
-			return data() + index1*MultiDimNBase<T,TS>::template getsteptype<dim>::value;
-		}
-
-		template <class dummy=void>
-		auto squeeze() -> MultiDimNView<T, typename TS::template removeif<singletondim> >
-		{
-			return data();
-		}
-
-		template <int...neworder>
+		template <int ...neworder>
 		auto permutedim() -> MultiDimNView<T, typename TS::template permuted<neworder...> >
 		{
 			static_assert(sizeof...(neworder) == TS::size,"permutation requires same order");
@@ -209,7 +167,32 @@ namespace multidim
 
 			static_assert(RT::Ntot == MultiDimNBase<T,TS>::Ntot,"result requires same number of elements");
 			return data();
-		}		
+		}			
+
+		auto squeeze() -> MultiDimNView<T, typename TS::template removeif<singletondim> >
+		{
+			return data();
+		}
+
+	private:
+		data_t data_;
+	};
+
+	// column wise
+	template <class T, class TS>
+	class MultiDimN: public MultiDimNBase<T,TS>
+	{
+	public:
+		using data_t = Eigen::Matrix<T,MultiDimNBase<T,TS>::Ntot,1>;
+
+		MultiDimN()
+		{
+
+		}
+
+		const T * data() const { return data_.data(); }
+
+		T * data() { return data_.data(); }
 
 		void setOnes()
 		{
@@ -221,6 +204,55 @@ namespace multidim
 			data_.setZero();	
 		}
 
+		/// COMMON ACROSS MultiDimNView and MultiDimN
+		/// TODO: replace with curiously recursive pattern
+		template<int dim>
+		auto limit1(int index) -> MultiDimNView<T, typename TS::template drop<dim> >
+		{
+			return (data()+index*  MultiDimNBase<T,TS>::template getsteptype<dim>::value ); // via implicit construction
+		}
+
+		/// for the dimension dim takes from the given index1 up to newsize elements. This is not reducing the number of dimensions
+		/// FUTURE: variant with index compile time
+		template<int dim, int newsize>
+		auto limit1block(int index1) -> 
+			MultiDimNView<T, typename TS::template replacetype<dim,sspair<newsize,  MultiDimNBase<T,TS>::template getsteptype<dim>::value   > > >
+		{
+			static_assert(newsize <= MultiDimNBase<T,TS>::template getsizetype<dim>::value,"sub-size cannot be larger than original");
+
+			return data() + index1*MultiDimNBase<T,TS>::template getsteptype<dim>::value;
+		}
+
+		template <int ...neworder>
+		auto permutedim() -> MultiDimNView<T, typename TS::template permuted<neworder...> >
+		{
+			static_assert(sizeof...(neworder) == TS::size,"permutation requires same order");
+			return data();
+		}		
+		
+		// TODO: let last dimension free to match
+		template <int...N>
+		auto reshapeR() -> MultiDimNView<T, typename details::rowmajorstepper<N...> >
+		{
+			using RT = MultiDimNView<T, typename details::rowmajorstepper<N...> >;
+
+			static_assert(RT::Ntot == MultiDimNBase<T,TS>::Ntot,"result requires same number of elements");
+			return data();
+		}		
+
+		template <int...N>
+		auto reshapeC() -> MultiDimNView<T, typename details::colmajorstepper<N...> >
+		{
+			using RT = MultiDimNView<T, typename details::colmajorstepper<N...> >;
+
+			static_assert(RT::Ntot == MultiDimNBase<T,TS>::Ntot,"result requires same number of elements");
+			return data();
+		}			
+
+		auto squeeze() -> MultiDimNView<T, typename TS::template removeif<singletondim> >
+		{
+			return data();
+		}
 
 	private:
 		data_t data_;

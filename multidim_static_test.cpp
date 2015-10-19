@@ -43,7 +43,7 @@ int main(int argc, char const *argv[])
 	dumpinfo(X().limit1block<2,3>(0),"getblock2"); // 2 2 1 4
 	//BUG dumpinfo(X().limit1block<3,1>(1),"getblocklast");
 	dumpinfo(X().limit1block<0,1>(0),"getblock0 non squeezed");
-	dumpinfo(X().limit1block<0,1>(0).squeeze<>(),"getblock0 squeezed");
+	dumpinfo(X().limit1block<0,1>(0).squeeze(),"getblock0 squeezed");
 	
 	X().limit1<2>(2).setZero();
 	X().limit1<2>(2).setZero();
@@ -55,6 +55,8 @@ int main(int argc, char const *argv[])
 
 	dumpinfo(X().reshapeR<5,3,2,7,4,2>(),"reshape row major(5,3,2,7,4,2)");
 
+	dumpinfo(X().reshapeC<5,3,2,7,4,2>().reshapeR<5,3,2,7,4,2>(),"reshape row major(5,3,2,7,4,2)");
+	
 	// as static
 	// as args
 	// as initializer list
