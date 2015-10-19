@@ -118,6 +118,7 @@ namespace multidim
 			return data() + index1*MultiDimNBase<T,TS>::template getsteptype<dim>::value;
 		}
 
+		/// remove the singleton dimensions (after limit1)
 		template <class dummy=void>
 		auto squeeze() -> MultiDimNView<T, typename TS::template removeif<singletondim> >
 		{
@@ -191,6 +192,25 @@ namespace multidim
 			return data();
 		}		
 		
+		// TODO: let last dimension free to match
+		template <int...N>
+		auto reshapeR() -> MultiDimNView<T, typename details::rowmajorstepper<N...> >
+		{
+			using RT = MultiDimNView<T, typename details::rowmajorstepper<N...> >;
+
+			static_assert(RT::Ntot == MultiDimNBase<T,TS>::Ntot,"result requires same number of elements");
+			return data();
+		}		
+
+		template <int...N>
+		auto reshapeC() -> MultiDimNView<T, typename details::colmajorstepper<N...> >
+		{
+			using RT = MultiDimNView<T, typename details::colmajorstepper<N...> >;
+
+			static_assert(RT::Ntot == MultiDimNBase<T,TS>::Ntot,"result requires same number of elements");
+			return data();
+		}		
+
 		void setOnes()
 		{
 			data_.setOnes();	

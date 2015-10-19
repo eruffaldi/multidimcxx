@@ -51,6 +51,10 @@ int main(int argc, char const *argv[])
 
 	dumpinfo(X().permutedim<3,2,1,0>(),"flip byrow(4,3,2,2)");
 	
+	dumpinfo(X().reshapeC<5,3,2,7,4,2>(),"reshape col major(5,3,2,7,4,2)");
+
+	dumpinfo(X().reshapeR<5,3,2,7,4,2>(),"reshape row major(5,3,2,7,4,2)");
+
 	// as static
 	// as args
 	// as initializer list
