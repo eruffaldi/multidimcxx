@@ -18,6 +18,12 @@
 namespace multidim
 {
 
+	/**
+	 * Base class of Multidimensional Static matrix of elements of type T
+	 *
+	 * TS is a sequence of types, where each type is (size,step)
+	 * 
+	 */
 	template <class T, class TS>
 	class MultiDimNBase
 	{
@@ -73,7 +79,9 @@ namespace multidim
 		}
 	};
 
-	// column wise
+	/**
+	 * View over a TS (typesequence of sizes)
+	 */
 	template <class T, class TS>
 	class MultiDimNView: public MultiDimNBase<T,TS>
 	{
@@ -113,6 +121,13 @@ namespace multidim
 		template <class dummy=void>
 		auto squeeze() -> MultiDimNView<T, typename TS::template removeif<singletondim> >
 		{
+			return data();
+		}
+
+		template <int...neworder>
+		auto permutedim() -> MultiDimNView<T, typename TS::template permuted<neworder...> >
+		{
+			static_assert(sizeof...(neworder) == TS::size,"permutation requires same order");
 			return data();
 		}
 
@@ -168,6 +183,13 @@ namespace multidim
 		{
 			return data();
 		}
+
+		template <int...neworder>
+		auto permutedim() -> MultiDimNView<T, typename TS::template permuted<neworder...> >
+		{
+			static_assert(sizeof...(neworder) == TS::size,"permutation requires same order");
+			return data();
+		}		
 		
 		void setOnes()
 		{

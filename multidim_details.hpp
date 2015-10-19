@@ -29,6 +29,18 @@ namespace multidim
       static constexpr  bool singleton = size == 1;
     };
 
+
+    template<class T, class... Rest>
+    struct is_all : std::false_type {};
+    
+    template<class T, class First>
+    struct is_all<T, First> : std::is_same<T, First> {};
+    
+    template<typename T, typename First, typename... Rest>
+    struct is_all<T, First, Rest...>
+    : std::integral_constant<bool, std::is_same<T, First>::value && is_all<T, Rest...>::value>
+    {};
+    
 template <int...I> struct isumseq;
 
 template <> struct isumseq<>
@@ -135,6 +147,29 @@ namespace details
 
   }
 
+  namespace permute_details
+  {
+
+  /// base template with: full TS, output OTS and list of indices
+  template <class TS, class OTS, int...I>
+  struct permuter;
+
+  /// empty list emitting Out
+  template <class TS, class...Out>
+  struct permuter<TS, type_sequence<Out...> >
+    {
+        using type = type_sequence<Out...>;
+    };
+
+
+  /// non empty list, append seleected to Out list and recurse
+  template <class TS, class...Out, int selected, int...Rest>
+  struct permuter<TS, type_sequence<Out...>, selected, Rest...>
+    : permuter<TS, type_sequence<Out..., typename TS::template pick<selected> >, Rest...>
+    {
+    };
+
+  }
 
   namespace dropper_details
   {
@@ -265,7 +300,9 @@ namespace details
   template <class...Is>
   using invertmake = typename invert_details::inverter<type_sequence<>, Is...>::type;
 
-
+  /// given TS
+  template <class TS, int...I>
+  using permuted_make = typename permute_details::permuter<TS, type_sequence<>, I...>::type;
 
   template <class X, class...I> struct sumseqsub;
 
@@ -296,6 +333,8 @@ std::conditional<a==1,boolholder<true>,boolholder<false> > ::type
  */
 template<class...I> struct type_sequence
 { 
+  using self = type_sequence<I...>;
+
   /// number of elements
   static constexpr int size = sizeof...(I);
 
@@ -327,6 +366,9 @@ template<class...I> struct type_sequence
 
   template <template <class T> class Pred>
   using removeif = details::removeif_make<Pred,I...>; 
+
+  template <int...neworder>
+  using permuted = details::permuted_make<self,neworder...>; 
 
   /// multidim specific, here for convenience
   /// Assumes that I... is value_holder (int with ::value and it returns)

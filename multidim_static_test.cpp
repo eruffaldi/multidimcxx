@@ -49,6 +49,8 @@ int main(int argc, char const *argv[])
 	X().limit1<2>(2).setZero();
 	X().setZero();
 
+	dumpinfo(X().permutedim<3,2,1,0>(),"flip byrow(4,3,2,2)");
+	
 	// as static
 	// as args
 	// as initializer list
