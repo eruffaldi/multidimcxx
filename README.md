@@ -1,3 +1,4 @@
+See Blogpost: http://teslacore.blogspot.it/2015/07/compile-time-c-multidimensional-arrays.html
 
 Working Principle: sizes and steps, in row (lower index) major form, that, by default gives: steps[i] >= steps[i+1]. 
 The access to the indices i1..iN or simply ii... is obtained by: base + ii .* steps. Several view operations
